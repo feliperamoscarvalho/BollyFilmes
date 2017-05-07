@@ -16,7 +16,7 @@ import java.util.List;
 
 public class JsonUtil {
 
-    public static List<ItemFilme> fromJsonToLIst(String json){
+    public static List<ItemFilme> fromJsonToList(String json){
 
         List<ItemFilme> list = new ArrayList<>();
         try {

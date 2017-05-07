@@ -55,6 +55,8 @@ public class FilmesProvider extends ContentProvider {
                 throw new IllegalArgumentException("URI não identificada: " + uri);
         }
 
+        cursor.setNotificationUri(getContext().getContentResolver(), uri); //notifica quando a uri tiver mudança
+
         return cursor;
     }
 
@@ -92,6 +94,8 @@ public class FilmesProvider extends ContentProvider {
                 throw new IllegalArgumentException("URI não identificada: " + uri);
         }
 
+        getContext().getContentResolver().notifyChange(uri, null); //notifica que tem um insert novo (o segundo parâmetro é um observer, não estamos usando)
+
         return FilmesContract.FilmeEntry.buildUriForFilmes(id);
     }
 
@@ -100,19 +104,24 @@ public class FilmesProvider extends ContentProvider {
 
         SQLiteDatabase writableDatabase = dbHelper.getWritableDatabase();
 
+        int delete = 0; //variável que vai guardar o resultado do delete
+
         switch (URI_MATCHER.match(uri)){
             case FILME:
-                return writableDatabase.delete(FilmesContract.FilmeEntry.TABLE_NAME, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
+                delete = writableDatabase.delete(FilmesContract.FilmeEntry.TABLE_NAME, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
 
             case FILME_ID:
                 selection = FilmesContract.FilmeEntry._ID + "=?";
                 selectionArgs = new String[]{String.valueOf(FilmesContract.FilmeEntry.getIdFromUri(uri))};
 
-                return writableDatabase.delete(FilmesContract.FilmeEntry.TABLE_NAME, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
-
-            default:
-                throw new IllegalArgumentException("URI não identificada: " + uri);
+                delete = writableDatabase.delete(FilmesContract.FilmeEntry.TABLE_NAME, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
         }
+        if(delete != 0){
+            //significa que houve atualização
+            getContext().getContentResolver().notifyChange(uri, null); //notifica que tem um delete (o segundo parâmetro é um observer, não estamos usando)
+        }
+
+        return delete;
     }
 
     @Override
@@ -120,18 +129,25 @@ public class FilmesProvider extends ContentProvider {
 
         SQLiteDatabase writableDatabase = dbHelper.getWritableDatabase();
 
+        int update = 0; //variável que vai guardar o resultado dos updates
+
         switch (URI_MATCHER.match(uri)){
             case FILME:
-                return writableDatabase.update(FilmesContract.FilmeEntry.TABLE_NAME, values, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
+                update = writableDatabase.update(FilmesContract.FilmeEntry.TABLE_NAME, values, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
 
             case FILME_ID:
                 selection = FilmesContract.FilmeEntry._ID + "=?";
                 selectionArgs = new String[]{String.valueOf(FilmesContract.FilmeEntry.getIdFromUri(uri))};
 
-                return writableDatabase.update(FilmesContract.FilmeEntry.TABLE_NAME, values, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
+                update = writableDatabase.update(FilmesContract.FilmeEntry.TABLE_NAME, values, selection, selectionArgs); //retorna o número de linhas que foram atualizadas
 
-            default:
-                throw new IllegalArgumentException("URI não identificada: " + uri);
         }
+
+        if(update != 0){
+            //significa que houve atualização
+            getContext().getContentResolver().notifyChange(uri, null); //notifica que tem um update (o segundo parâmetro é um observer, não estamos usando)
+        }
+
+        return update;
     }
 }
