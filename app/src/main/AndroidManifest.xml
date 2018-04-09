@@ -2,7 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="br.com.androidpro.bollyfilmes">
 
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
     <application
         android:allowBackup="true"
@@ -41,10 +44,34 @@
         </activity>
 
         <provider
-            android:authorities="br.com.androidpro.bollyfilmes"
+            android:authorities="@string/content_authority"
             android:name=".data.FilmesProvider"
-            android:exported="false"/>
+            android:exported="false"
+            android:syncable="true" />
 
+        <service android:name=".sync.FilmesAuthenticatorService">
+            <intent-filter>
+                <!--Configuração que indica que o serviço vai ser ativado com tiver uma autenticação de conta-->
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+
+            <!--Passa parâmetros pra classe-->
+            <meta-data android:name="android.accounts.AccountAuthenticator" android:resource="@xml/authenticator"/>
+        </service>
+
+        <service android:name=".sync.FilmesSyncService"
+            android:exported="true">
+
+            <intent-filter>
+                <!--O serviço vai ser ativo quando o Adapter da plataforma for ativo-->
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <!--Passa parâmetros pra classe-->
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/syncadapter"/>
+        </service>
+
+        <receiver android:name=".service.FilmesIntentService$FilmesReceiver" android:enabled="true" />
 
     </application>
 
